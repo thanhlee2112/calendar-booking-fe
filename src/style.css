@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@theme {
+  /* Khai báo màu sắc đặc trưng của Discord */
+  --color-discord-blurple: #5865f2;
+  --color-discord-dark: #313338;
+  --color-discord-card: #2b2d31;
+  --color-discord-card-lighter: #1e1f22;
+  --color-discord-text-gray: #b5bac1;
+  --color-discord-text-white: #f2f3f5;
+}
+
+/* Reset một chút cho body để giống app Discord */
+@layer base {
+  body {
+    @apply bg-discord-dark text-discord-text-white antialiased;
+  }
+}
