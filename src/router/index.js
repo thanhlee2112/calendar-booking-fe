@@ -46,7 +46,7 @@ const routes = [
     meta: { guestOnly: true }
   },
   {
-    path: '/auth/discord-callback',
+    path: '/authentication/discord-callback',
     name: 'DiscordCallback',
     component: () => import('../views/auth/DiscordCallback.vue')
   },
