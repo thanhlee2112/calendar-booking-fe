@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:20-alpine as build-stage
+FROM node:20-bullseye-slim as build-stage
 WORKDIR /app
 
 # Nhận các biến ARG từ docker-compose để "nướng" vào JS
