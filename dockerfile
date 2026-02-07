@@ -1,16 +1,24 @@
-# Stage 1: Build Vue app
-FROM node:18-alpine as build-stage
+# Stage 1: Build
+FROM node:20-alpine as build-stage
 WORKDIR /app
+
+# Nhận các biến ARG từ docker-compose để "nướng" vào JS
+ARG VITE_API_BASE_URL
+ARG VITE_DISCORD_CLIENT_ID
+ARG VITE_DISCORD_REDIRECT_URI
+
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_DISCORD_CLIENT_ID=$VITE_DISCORD_CLIENT_ID
+ENV VITE_DISCORD_REDIRECT_URI=$VITE_DISCORD_REDIRECT_URI
+
 COPY package*.json ./
 RUN npm install
 COPY . .
 RUN npm run build
 
-# Stage 2: Cấu hình Nginx để phục vụ file tĩnh
+# Stage 2: Serve
 FROM nginx:stable-alpine
-# Copy file đã build từ Stage 1 sang thư mục của Nginx
 COPY --from=build-stage /app/dist /usr/share/nginx/html
-# Copy cấu hình Nginx tùy chỉnh (sẽ tạo ở bước sau)
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
