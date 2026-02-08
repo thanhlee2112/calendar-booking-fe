@@ -58,7 +58,7 @@ export const useScheduleStore = defineStore('schedule', {
     },
     async createRecurringSchedule(data) {
       try {
-        const response = await apiClient.post('/schedules/availability-rules', data);
+        const response = await apiClient.post('/schedules/availability-rules/', data);
         return response.data;
       } catch (err) {
         console.error("❌ Error creating recurring schedule:", err);
