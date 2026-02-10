@@ -1,15 +1,12 @@
 <script setup>
-import { useRouter } from 'vue-router';
-import { computed } from 'vue';
-import { CalendarDays, Clock, LogOut, Calendar as CalendarIcon } from 'lucide-vue-next';
+import { CalendarDays, Clock, PartyPopper, Plus } from 'lucide-vue-next';
 import { sidebarRoutes } from '../router/index';
-
-const router = useRouter();
-
 // Map icon thủ công để dùng với <component :is />
 const iconMap = {
   CalendarDays,
-  Clock
+  Clock,
+  PartyPopper,
+  Plus
 };
 
 const handleLogout = () => { /* ... */ };
@@ -28,7 +25,7 @@ const handleLogout = () => { /* ... */ };
           :key="route.fullPath"
           :to="route.fullPath"
           class="flex items-center gap-3 px-3 py-2 rounded transition-colors group"
-          active-class="bg-[#3f4147] text-white"
+          exact-active-class="bg-[#3f4147] text-white"
           :class="[$route.path === route.fullPath ? '' : 'text-[#949ba4] hover:bg-[#35373c] hover:text-[#dbdee1]']"
         >
           <component :is="iconMap[route.meta.icon]" :size="20" />

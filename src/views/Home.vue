@@ -11,7 +11,46 @@
     <div class="text-discord-text-gray mb-2">
       📊 Events trong store: {{ calendarEvents.length }}
     </div>
-
+    <TransitionRoot appear :show="showDetail" as="template">
+      <Dialog as="div" @close="showDetail = false" class="relative z-50">
+        <TransitionChild
+          as="template"
+          enter="ease-out duration-300"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="ease-in duration-200"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/50" />
+        </TransitionChild>
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="ease-out duration-300"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel class="w-full max-w-sm transform bg-[#2b2d31] border border-black/20 rounded-lg shadow-2xl p-4 transition-all">
+                <DialogTitle class="text-lg font-semibold text-white mb-4">Chi tiết lịch trình</DialogTitle>
+                <div v-if="selectedEvent">
+                  <div class="mb-2 text-white"><b>Tiêu đề:</b> {{ selectedEvent.title }}</div>
+                  <div class="mb-2 text-white"><b>Bắt đầu:</b> {{ selectedEvent.start }}</div>
+                  <div class="mb-2 text-white"><b>Kết thúc:</b> {{ selectedEvent.end }}</div>
+                  <div class="flex justify-end gap-2 mt-6">
+                    <button @click="showDetail = false" class="text-[#b5bac1] hover:underline px-3 py-1.5">Đóng</button>
+                  </div>
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
     <FullCalendar 
       ref="fullCalendarRef"
       :options="calendarOptions"
@@ -27,16 +66,25 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { useCalendarStore } from '@/stores/calendar';
+import { useScheduleStore } from '@/stores/schedule';
+import rrulePlugin from '@fullcalendar/rrule';
+import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue';
 
 const calendarStore = useCalendarStore();
+const scheduleStore = useScheduleStore();
 const fullCalendarRef = ref(null);
-
+const showDetail = ref(false)
+const selectedEvent = ref(null);
 const calendarEvents = computed(() => {
-  return calendarStore.events;
+  // Gộp cả calendar events và schedule
+  return [
+    ...calendarStore.events,
+    ...scheduleStore.mySchedules
+  ];
 });
 
 const calendarOptions = reactive({
-  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin, rrulePlugin],
   initialView: 'dayGridMonth',
   headerToolbar: {
     left: 'prev,next today',
@@ -50,15 +98,30 @@ const calendarOptions = reactive({
   
   // Events callback - FullCalendar sẽ gọi hàm này để lấy events
   events: (info, successCallback, failureCallback) => {
-    const eventsToShow = calendarStore.events;
-    successCallback(eventsToShow);
+    successCallback(calendarEvents.value);
   },
 
   buttonText: {
     today: 'Hôm nay',
     month: 'Tháng',
     week: 'Tuần'
-  }
+  },
+  eventContent: function(arg) {
+    const username = arg.event.extendedProps?.username || '';
+    return {
+      html: `<div><b>${arg.event.title}</b><br><span style='font-size:12px;color:#b5bac1'>${username ? '👤 ' + username : ''}</span></div>`
+    };
+  },
+  eventClick: (info) => {    
+    selectedEvent.value = {
+      id: info.event.id.split('-')[1],
+      title: info.event.title,
+      start: info.event.start,
+      end: info.event.end,
+      type: info.event.extendedProps.type
+    }
+    showDetail.value = true;
+  },
 });
 
 // Khi store events thay đổi, refetch
@@ -73,7 +136,8 @@ watch(
 );
 
 onMounted(() => {
-  calendarStore.fetchAllEvents();  
+  calendarStore.fetchAllEvents();
+  scheduleStore.fetchAllSchedules();
 });
 </script>
 
@@ -114,11 +178,14 @@ onMounted(() => {
   background-color: #5865f2 !important;
   border-color: transparent !important;
   color: #fff !important;
+  cursor: pointer;
 }
 
 .fc .fc-event {
   background-color: #5865f2 !important;
   border-color: transparent !important;
+    cursor: pointer;
+
 }
 
 .fc .fc-toolbar-title {

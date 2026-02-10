@@ -50,7 +50,55 @@ export const useScheduleStore = defineStore('schedule', {
         this.loading = false;
       }
     },
+    async fetchAllSchedules(start, end) {
+      this.loading = true;
+      try {
+        // Gọi song song cả 2 API để tối ưu thời gian
+        const [recurringRes, oneTimeRes] = await Promise.all([
+          apiClient.get('/schedules/availability-rules/all/', { params: { valid_from: start, valid_to: end } }),
+          apiClient.get('/schedules/schedules/all/', { params: { start_time: start, end_time: end } })
+        ]);
 
+        const weekdayMap = ['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su'];
+
+        // 1. Map lịch lặp lại (Màu xanh)
+        const recurring = recurringRes.data.map(item => ({
+          id: `rec-${item.id}`,
+          title: `[Lặp lại] ${item.start_time.substring(0,5)}`,
+          start_time: item.start_time,
+          end_time: item.end_time,
+          username: item.username || item.created_by || '',
+          rrule: {
+            freq: 'weekly',
+            byweekday: item.rule_weekdays.map(d => weekdayMap[d]),
+            dtstart: `${item.valid_from || '2024-01-01'}T${item.start_time}`,
+            until: item.valid_to || undefined
+          },
+          duration: this.calculateDuration(item.start_time, item.end_time),
+          backgroundColor: '#3ba55c',
+          borderColor: 'transparent',
+          extendedProps: { type: 'recurring', description: item.description, username: item.username || item.created_by || '' }
+        }));
+
+        // 2. Map lịch đột xuất (Màu cam)
+        const oneTime = oneTimeRes.data.map(item => ({
+          id: `ot-${item.id}`,
+          title: item.name,
+          start_time: item.start_time,
+          end_time: item.end_time,
+          username: item.username || item.created_by || '',
+          start: item.start_time,
+          end: item.end_time,
+          backgroundColor: '#faa61a',
+          borderColor: 'transparent',
+          extendedProps: { type: 'one-time', description: item.description, username: item.username || item.created_by || '' }
+        }));
+
+        this.mySchedules = [...recurring, ...oneTime];
+      } finally {
+        this.loading = false;
+      }
+    },
     calculateDuration(start, end) {
       const [sH, sM] = start.split(':').map(Number);
       const [eH, eM] = end.split(':').map(Number);
@@ -58,12 +106,33 @@ export const useScheduleStore = defineStore('schedule', {
     },
     async createRecurringSchedule(data) {
       try {
-        const response = await apiClient.post('/schedules/availability-rules', data);
+        const response = await apiClient.post('/schedules/availability-rules/', data);
         return response.data;
       } catch (err) {
         console.error("❌ Error creating recurring schedule:", err);
         throw err;
       }
-    }
+    },
+    async createOneTimeSchedule(data) {
+      try {
+        const response = await apiClient.post('/schedules/schedules/', data);
+        return response.data;
+      } catch (err) {
+        console.error("❌ Error creating one-time schedule:", err);
+        throw err;
+      }
+    },
+    async deleteSchedule(type, id) {
+      try {
+        if (type === 'recurring') {
+          await apiClient.delete(`/schedules/availability-rules/${id}/`);
+        } else if (type === 'one-time') {
+          await apiClient.delete(`/schedules/schedules/${id}/`);
+        }
+      } catch (err) {
+        console.error("❌ Error deleting schedule:", err);
+        throw err;
+      }
+    },
   }
 });

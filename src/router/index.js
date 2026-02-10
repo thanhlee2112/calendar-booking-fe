@@ -16,6 +16,20 @@ export const sidebarRoutes = [
     component: () => import('../views/personal/Calendar.vue'),
     meta: { title: 'Lịch cá nhân', icon: 'Clock', showInSidebar: true },
     fullPath: '/schedule'
+  },
+  {
+    path: 'activity',
+    name: 'Activity',
+    component: () => import('../views/Activity.vue'),
+    meta: { title: 'Hoạt động', icon: 'PartyPopper', showInSidebar: true },
+    fullPath: '/activity'
+  },
+  {
+    path: 'create-event',
+    name: 'CreateEvent',
+    component: () => import('../views/CreateEvent.vue'),
+    meta: { title: 'Tạo sự kiện', icon: 'Plus', showInSidebar: true },
+    fullPath: '/create-event'
   }
 ];
 
@@ -36,6 +50,18 @@ const routes = [
         name: 'Schedule',
         component: () => import('../views/personal/Calendar.vue'),
         meta: { title: 'Lịch cá nhân', icon: 'Clock', showInSidebar: true }
+      },
+      {
+        path: 'activity',
+        name: 'Activity',
+        component: () => import('../views/Activity.vue'),
+        meta: { title: 'Hoạt động', icon: 'PartyPopper', showInSidebar: true }
+      },
+      {
+        path: 'create-event',
+        name: 'CreateEvent',
+        component: () => import('../views/CreateEvent.vue'),
+        meta: { title: 'Tạo sự kiện', icon: 'Plus', showInSidebar: true }
       }
     ]
   },

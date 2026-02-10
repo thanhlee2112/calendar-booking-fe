@@ -14,38 +14,64 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// 2. Response Interceptor: Xử lý Refresh Token khi gặp lỗi 401
+
+// Refresh token logic: chỉ gọi 1 lần, các request khác sẽ chờ
+let isRefreshing = false;
+let failedQueue = [];
+
+function processQueue(error, token = null) {
+  failedQueue.forEach(prom => {
+    if (token) {
+      prom.resolve(token);
+    } else {
+      prom.reject(error);
+    }
+  });
+  failedQueue = [];
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const authStore = useAuthStore();
     const originalRequest = error.config;
 
-    // Nếu lỗi 401 và chưa từng thử refresh cho request này
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
+      if (isRefreshing) {
+        // Nếu đang refresh, chờ refresh xong
+        return new Promise((resolve, reject) => {
+          failedQueue.push({
+            resolve: (token) => {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+              resolve(apiClient(originalRequest));
+            },
+            reject: (err) => {
+              reject(err);
+            }
+          });
+        });
+      }
+
+      isRefreshing = true;
       try {
-        // Gọi API Refresh Token của bạn
         const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/token/refresh/`, {
           refresh: authStore.refreshToken,
         });
-
         const { access, refresh } = response.data;
-
-        // Lưu token mới vào Pinia & LocalStorage
         authStore.setTokens(access, refresh);
-
-        // Cập nhật header cho request cũ và gửi lại
+        processQueue(null, access);
         originalRequest.headers.Authorization = `Bearer ${access}`;
         return apiClient(originalRequest);
       } catch (refreshError) {
-        // Nếu refresh cũng lỗi (hết hạn hoàn toàn) -> Logout
         authStore.logout();
+        processQueue(refreshError, null);
         return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
-
     return Promise.reject(error);
   }
 );
