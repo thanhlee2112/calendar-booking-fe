@@ -1,0 +1,47 @@
+name: Deploy Frontend Direct Build
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-on-ec2:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Build on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # 1. Tắt Docker Container để giải phóng RAM cho việc build
+            cd /home/ubuntu/scheduler
+            docker compose down
+
+            # 2. Vào thư mục frontend và cập nhật code
+            cd /home/ubuntu/scheduler/calendar-booking-fe
+            git pull origin main
+
+            # 3. Dọn dẹp triệt để tàn dư cũ
+            rm -rf dist node_modules/.vite
+
+            rm -rf dist
+
+            # 4. Tạo lại file .env sạch hoàn toàn (loại bỏ ký tự lạ M-CM- và $)
+
+            # 5. Cài đặt và Build (Ép biến môi trường trực tiếp)
+            npm install
+            npm run build
+
+            # 6. KIỂM TRA: Nếu vẫn còn 'undefined/api' thì dừng script và báo lỗi
+            if grep -r "undefined/api" dist/assets/; then
+              echo "LỖI: Bản build vẫn chứa 'undefined/api'. Đang dừng deploy!"
+              exit 1
+            else
+              echo "THÀNH CÔNG: Không tìm thấy 'undefined' trong bản build."
+            fi
+
+            # 7. Khởi động lại Docker sau khi build xong
+            cd /home/ubuntu/scheduler
+            docker compose up -d
