@@ -43,6 +43,33 @@ actions: {
     } finally {
       this.loading = false;
     }
+  },
+  async createEvent(data) {
+    try {
+      const response = await calendarService.createEvent(data);
+      return response.data;
+    } catch (err) {
+      console.error("❌ Lỗi tạo event:", err);
+      throw err;
+    }
+  },
+  async detailEvent(id) {
+    try {
+      const event = await calendarService.getEventDetail(id);
+      return event;
+    } catch (err) {
+      console.error("❌ Lỗi tạo event:", err);
+      throw err;
+    }
+  },
+  async updateEvent(id, data) {
+    try {
+      const response = await calendarService.updateEvent(id, data);
+      return response.data;
+    } catch (err) {
+      console.error("❌ Lỗi cập nhật event:", err);
+      throw err;
+    }
   }
 }
 });

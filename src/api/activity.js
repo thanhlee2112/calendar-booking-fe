@@ -8,9 +8,9 @@ export const activityService = {
     return apiClient.post("/activities/activities/", data);
   },
   updateActivity(id, data) {
-    return apiClient.put(`/activities/activities/${id}`, data);
+    return apiClient.put(`/activities/activities/${id}/`, data);
   },
   deleteActivity(id) {
-    return apiClient.delete(`/activities/activities/${id}`);
+    return apiClient.delete(`/activities/activities/${id}/`);
   }
 };

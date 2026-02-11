@@ -112,15 +112,14 @@ const calendarOptions = reactive({
       html: `<div><b>${arg.event.title}</b><br><span style='font-size:12px;color:#b5bac1'>${username ? '👤 ' + username : ''}</span></div>`
     };
   },
-  eventClick: (info) => {    
-    selectedEvent.value = {
-      id: info.event.id.split('-')[1],
-      title: info.event.title,
-      start: info.event.start,
-      end: info.event.end,
-      type: info.event.extendedProps.type
-    }
-    showDetail.value = true;
+  eventClick: (info) => {
+    // Route to EventDetail.vue with event id
+    // event.id có thể là dạng "event-123", lấy số id
+    const eventId = info.event.id.split('-')[1] || info.event.id;
+    // Sử dụng router để chuyển trang
+    window.location.href = `/events/${eventId}`;
+    // Nếu dùng vue-router:
+    // router.push({ name: 'EventDetail', params: { id: eventId } });
   },
 });
 

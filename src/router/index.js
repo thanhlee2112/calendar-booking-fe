@@ -27,7 +27,7 @@ export const sidebarRoutes = [
   {
     path: 'create-event',
     name: 'CreateEvent',
-    component: () => import('../views/CreateEvent.vue'),
+    component: () => import('../views/Events/CreateEvent.vue'),
     meta: { title: 'Tạo sự kiện', icon: 'Plus', showInSidebar: true },
     fullPath: '/create-event'
   }
@@ -60,8 +60,13 @@ const routes = [
       {
         path: 'create-event',
         name: 'CreateEvent',
-        component: () => import('../views/CreateEvent.vue'),
+        component: () => import('../views/Events/CreateEvent.vue'),
         meta: { title: 'Tạo sự kiện', icon: 'Plus', showInSidebar: true }
+      },
+      {
+        path: 'events/:id',
+        name: 'EventDetail',
+        component: () => import('../views/Events/EventDetail.vue')
       }
     ]
   },

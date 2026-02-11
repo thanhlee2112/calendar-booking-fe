@@ -22,5 +22,35 @@ export const useActivityStore = defineStore('activity', {
                 this.loading = false;
             }
         },
+        async addActivity(activityData) {
+            try {
+                const response = await activityService.createActivity(activityData);
+                this.activities.push(response.data); // Thêm hoạt động mới vào state
+            } catch (err) {
+                console.error("❌ Lỗi tạo activity:", err);
+                throw err; // Ném lỗi để component có thể xử lý
+            }
+          },
+          async updateActivity(activityId, activityData) {
+            try {
+                const response = await activityService.updateActivity(activityId, activityData);
+                const index = this.activities.findIndex(act => act.id === activityId);
+                if (index !== -1) {
+                    this.activities[index] = response.data; // Cập nhật hoạt động trong state
+                }
+            } catch (err) {
+                console.error("❌ Lỗi cập nhật activity:", err);
+                throw err;
+            }
+          },
+          async deleteActivity(activityId) {
+            try {
+                await activityService.deleteActivity(activityId);
+                this.activities = this.activities.filter(act => act.id !== activityId); // Xóa hoạt động khỏi state
+            } catch (err) {
+                console.error("❌ Lỗi xóa activity:", err);
+                throw err;
+            }
+          },
     }
 });

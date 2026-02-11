@@ -10,10 +10,10 @@ const authStore = useAuthStore();
 onMounted(() => {
   const accessToken = route.query.access;
   const refreshToken = route.query.refresh;
-
-  if (accessToken && refreshToken) {
+  const user = route.query.user;
+  if (accessToken && refreshToken && user) {
     // Lưu vào Pinia và LocalStorage
-    authStore.setTokens(accessToken, refreshToken);    
+    authStore.setTokens(accessToken, refreshToken,user);    
     // Chuyển hướng về trang chủ hoặc dashboard
     router.push('/');
   } else {

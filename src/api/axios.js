@@ -60,7 +60,8 @@ apiClient.interceptors.response.use(
           refresh: authStore.refreshToken,
         });
         const { access, refresh } = response.data;
-        authStore.setTokens(access, refresh);
+        const user = authStore.user;
+        authStore.setTokens(access, refresh, user);
         processQueue(null, access);
         originalRequest.headers.Authorization = `Bearer ${access}`;
         return apiClient(originalRequest);

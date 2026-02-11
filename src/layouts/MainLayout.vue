@@ -35,7 +35,7 @@ const handleLogout = () => { /* ... */ };
       
       </aside>
 
-    <main class="flex-1 bg-[#313338] relative overflow-hidden">
+    <main class="flex-1 bg-[#313338] relative overflow-auto">
        <router-view />
     </main>
   </div>
